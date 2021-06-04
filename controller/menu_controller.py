@@ -1,3 +1,5 @@
+from turtle import pd
+
 from model.Tournoi import Tournoi
 from model.Joueur import Joueur
 from datetime import date
@@ -12,6 +14,13 @@ new_players = [Joueur("Abrahamyan", "Tatev",datetime.datetime(1988, 1, 13).strft
                Joueur( "Xiangzhi","Bu",datetime.datetime(1985, 12, 10).strftime("%d/%m/%Y"),"Male", 7),
                Joueur( "Sachdev", "Tania",datetime.datetime(1986, 8, 20).strftime("%d/%m/%Y"),"Female", 8)]
 
+first_half = []
+
+second_half = []
+
+peer = []
+
+players_score = []
 class MenuController:
 
     def createANewTournement(self):
@@ -21,6 +30,7 @@ class MenuController:
         tournoi = Tournoi("tournoi01", "Paris", d1, 4, 3, 8, "bullet/blitz/coup rapide", "vide")
         print(tournoi)
 
+        self.dividePlayers()
 
     def addingNewPlayers(self):
         print("adding player :")
@@ -45,3 +55,38 @@ class MenuController:
         else:
             for element in new_players:
                 print(element)
+
+
+
+    def dividePlayers(self):
+
+        index = len(new_players) // 2
+
+        first_half = new_players[:index]
+
+        second_half = new_players[index:]
+
+        peer.extend(zip(first_half, second_half))
+
+        for first, second in peer:
+            score1 = input("Enter the score for the player : " + first.Nom_de_famille)
+            score2 = input("Enter the score for the player : " + second.Nom_de_famille)
+            players_score.append([first, score1])
+            players_score.append([second, score2])
+
+
+        print("players")
+        for element in first_half:
+            print(element)
+        print("middle")
+        for element in second_half:
+            print(element)
+        print("peer")
+        for first, second in peer:
+            print(first, second)
+
+        print("score")
+        for first, second in players_score:
+            print(first, second)
+
+

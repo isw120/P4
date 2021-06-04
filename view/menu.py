@@ -8,7 +8,7 @@ class Menu:
     def showMenu(self):
         print("Menu :")
         print("1) Ajouter un joueur")
-        print("2) Afficher la list des joueurs")
+        print("2) Afficher la liste des joueurs")
         print("3) Créer un nouveau tournoi")
         print("4) Lancer un tournoi")
         print("5) Générer des rapports")
