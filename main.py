@@ -1,9 +1,8 @@
 from view import menu
 
-def init():
 
-    load = menu.Menu()
-    load.showMenu()
+def init():
+    menu.Menu().showMenu()
 
 
 init()

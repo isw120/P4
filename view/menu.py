@@ -1,11 +1,9 @@
 import sys
 from controller import menu_controller
-from controller import DatabaseController
+
 
 class Menu:
-
     controller = menu_controller.MenuController()
-    controller2 = DatabaseController.DatabaseController()
 
     def showMenu(self):
         print("Menu :")
@@ -18,28 +16,26 @@ class Menu:
         self.chooseOption()
 
     def chooseOption(self):
-        while (True):
-            option = input("Enter an option:")
-            if (option == "1"):
-                joueur = self.controller.addingNewPlayers()
-                self.controller2.insertPlayers(joueur)
+        while True:
+            option = input("Enter an option : ")
+            if option == "1":
+                self.controller.addingANewPlayer()
                 self.showMenu()
-            if (option == "2"):
-                tournoi = self.controller.createANewTournement()
-                self.controller2.insertTournement(tournoi)
+            if option == "2":
+                self.controller.createANewTournement()
                 self.showMenu()
-            if (option == "3"):
+            if option == "3":
                 self.controller.startingTournemant()
                 self.showMenu()
-            if (option == "4"):
+            if option == "4":
                 self.controller.continueTournement()
                 self.showMenu()
-            if (option == "5"):
+            if option == "5":
                 self.controller.creatReports()
                 self.showMenu()
-            if (option == "6"):
-                print("you choosed to exit")
+            if option == "6":
+                print("You choosed to exit")
                 sys.exit()
             else:
-                print("wrong option")
+                print("Wrong option")
                 self.showMenu()

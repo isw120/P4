@@ -3,104 +3,93 @@ from model.Joueur import Joueur
 from model.Tour import Tour
 from datetime import date, datetime
 from controller import DatabaseController
-
-new_players2 = []
-
-new_players3 = []
-
-new_players4 = []
-
-new_players5 = []
-
-first_half = []
-
-second_half = []
-
-first_half_2 = []
-
-second_half_2 = []
-
-first_half_3 = []
-
-second_half_3 = []
-
-peer = []
-
-peer2 = []
-
-peer3 = []
-
-players_score = []
-
-controller = DatabaseController.DatabaseController()
+import json
 
 class MenuController:
 
+    db_controller = DatabaseController.DatabaseController()
+
     def createANewTournement(self):
-        print("Creating a new Tournement")
-        name = input("Enter tournement name :")
-        place = input("Enter tournement place :")
+        print("Creating a new tournement")
+        name = input("Enter tournement name : ")
+        place = input("Enter tournement place : ")
         today = date.today()
-        d1 = today.strftime("%d/%m/%Y")
-        time_controll = input("Enter tournement time controll (bullet, blitz, coup rapide) :")
-        description = input("Enter tournement description :")
-        tournoi = Tournoi(name, place, d1, 4, None, None, time_controll, description, None, None, None)
+        formated_day = today.strftime("%d/%m/%Y")
+        time_controll = input("Enter tournement time controll (bullet, blitz, coup rapide) : ")
+        description = input("Enter tournement description : ")
+        tournoi = Tournoi(name, place, formated_day, 4, None, None, time_controll, description, None, None, None)
 
-        return tournoi
+        self.db_controller.insertTournement(tournoi)
 
-    def addingNewPlayers(self):
-        name = input("Enter player name :")
-        family_name = input("Enter player family name :")
-        date_of_birth = input("Enter player date of birth :")
-        sexe = input("Enter player sexe :")
-        status = True
-        while(status):
-            classement = input("Enter a classement :")
+    def addingANewPlayer(self):
+        print("Creating a new player")
+        name = input("Enter player name : ")
+        family_name = input("Enter player family name : ")
+        date_of_birth = input("Enter player date of birth : ")
+        sexe = input("Enter player sexe : ")
+        while True:
+            classement = input("Enter a classement : ")
             if classement.isalpha() or int(classement) < 0:
                 print("classement must be a positive number")
             else:
-                status = False
+                break
 
-        joureur = Joueur(family_name, name, date_of_birth, sexe, classement)
+        joueur = Joueur(family_name, name, date_of_birth, sexe, classement)
 
-        return joureur
-
+        self.db_controller.insertPlayer(joueur)
 
     def startingTournemant(self):
 
-        tournement_name = input("Enter Tournement name :")
+        serialized_tournement = None
 
-        number = 0
-        while(number < 8):
-            family_name = input("Enter player family name :")
-            name = input("Enter player name :")
-            serialized_player = controller.getByFamillyName(family_name, name)
-            if serialized_player is not None:
-                new_players2.append(serialized_player)
-                number = number + 1
+        while True:
+            tournement_name = input("Enter tournement name :")
+            serialized_tournement = self.db_controller.getTournementByName(tournement_name)
+            if serialized_tournement is not None:
+                break
             else:
-                print("this player was not found try again :")
+                print("This tournement was not found try again")
                 continue
 
-        serialized_tournement = controller.getTournementByName(tournement_name)
+        number = 0
+        players_list = []
+        while number < 8:
+            family_name = input("Enter player family name : ")
+            name = input("Enter player name : ")
+            serialized_player = self.db_controller.getAPlayer(family_name, name)
+            if serialized_player is not None:
+                players_list.append(serialized_player)
+                number = number + 1
+            else:
+                print("This player was not found try again")
+                continue
 
-        tournoi = Tournoi(serialized_tournement["Nom"],  serialized_tournement["Lieu"],  serialized_tournement["Date"],  serialized_tournement["Nombre_de_tours"],  serialized_tournement["Tournees"], new_players2,  serialized_tournement["Controle_du_temps"],  serialized_tournement["Description"],
+        tournoi = Tournoi(serialized_tournement["Nom"], serialized_tournement["Lieu"], serialized_tournement["Date"],
+                          serialized_tournement["Nombre_de_tours"], serialized_tournement["Tournees"], players_list,
+                          serialized_tournement["Controle_du_temps"], serialized_tournement["Description"],
                           serialized_tournement["status"], serialized_tournement["secondRoundPlayers"],
                           serialized_tournement["thirdRoundPlayers"])
 
-        controller.updateTournementByName(tournoi)
+        self.db_controller.updateTournementByName(tournoi)
 
         self.dividePlayers(tournoi)
 
-
     def continueTournement(self):
 
-        tournement_name = input("Enter Tournement name :")
+        serialized_tournement = None
 
-        serialized_tournement = controller.getTournementByName(tournement_name)
+        while True:
+            tournement_name = input("Enter tournement name : ")
+            serialized_tournement = self.db_controller.getTournementByName(tournement_name)
+            if serialized_tournement is not None:
+                break
+            else:
+                print("This tournement was not found try again")
+                continue
 
         tournoi = Tournoi(serialized_tournement["Nom"], serialized_tournement["Lieu"], serialized_tournement["Date"],
-                          serialized_tournement["Nombre_de_tours"], serialized_tournement["Tournees"], serialized_tournement["Joueurs"],
+                          serialized_tournement["Nombre_de_tours"], serialized_tournement["Tournees"],
+                          serialized_tournement["Joueurs"],
                           serialized_tournement["Controle_du_temps"], serialized_tournement["Description"],
                           serialized_tournement["status"], serialized_tournement["secondRoundPlayers"],
                           serialized_tournement["thirdRoundPlayers"])
@@ -109,51 +98,51 @@ class MenuController:
             self.secondRound(tournoi)
         elif tournoi.status == "second round":
             self.thirdRound(tournoi)
-
+        else:
+            print("This tournement is finished")
 
     def dividePlayers(self, tournoi):
+
         print("Round 1 :")
+
         serialized_players = tournoi.Joueurs
 
+        first_round_players = []
+        first_round_peers = []
+        next_round_players = []
+
         for player in serialized_players:
-            joureur = Joueur(player["Nom_de_famille"], player["Prenom"], player["Date_de_naissance"], player["Sexe"], player["Classement"])
-            new_players3.append(joureur)
+            joueur = Joueur(player["Nom_de_famille"], player["Prenom"], player["Date_de_naissance"], player["Sexe"],
+                             player["Classement"])
+            first_round_players.append(joueur)
 
-        index = len(new_players3) // 2
+        index = len(first_round_players) // 2
 
-        first_half = new_players3[:index]
+        first_half = first_round_players[:index]
 
-        second_half = new_players3[index:]
+        second_half = first_round_players[index:]
 
-        peer.extend(zip(first_half, second_half))
+        first_round_peers.extend(zip(first_half, second_half))
 
         date_and_time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
         tour = Tour("tour 1", date_and_time, None, None)
 
-        matches = []
+        first_round_matches = []
 
-        for first, second in peer:
+        for first, second in first_round_peers:
 
             score1 = input("Enter the score for the player : " + first.Nom_de_famille + " : ")
             score2 = input("Enter the score for the player : " + second.Nom_de_famille + " : ")
 
             if score1 == "1":
-                ##new_players3.remove(first)
-                new_players4.append(first)
+                next_round_players.append(first)
             elif score2 == "1":
-                new_players4.append(second)
-                ##new_players3.remove(second)
+                next_round_players.append(second)
             elif score1 == "0.5" and score2 == "0.5":
-                new_players4.append(first)
+                next_round_players.append(first)
 
-            test = input("changer le classement ??")
-
-            if test == "oui":
-                first.Classement = input("enter new classment for " + first.Nom_de_famille + " " + first.Prenom + " : ")
-                second.Classement = input("enter new classment for " + second.Nom_de_famille + " " + second.Prenom + " : ")
-
-            first_ser = {
+            serialized_first_player = {
                 'Nom_de_famille': first.Nom_de_famille,
                 'Prenom': first.Prenom,
                 'Date_de_naissance': first.Date_de_naissance,
@@ -161,7 +150,7 @@ class MenuController:
                 'Classement': first.Classement
             }
 
-            second_ser = {
+            serialized_second_player = {
                 'Nom_de_famille': second.Nom_de_famille,
                 'Prenom': second.Prenom,
                 'Date_de_naissance': second.Date_de_naissance,
@@ -169,16 +158,112 @@ class MenuController:
                 'Classement': second.Classement
             }
 
-            list_a = [first_ser, second_ser]
-            list_b = [score1, score2]
+            players = [serialized_first_player, serialized_second_player]
+            scores = [score1, score2]
 
-            matches.append(list(zip(list_a, list_b)))
+            first_round_matches.append(list(zip(players, scores)))
 
         end_date_and_time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         tour.endDateAndHour = end_date_and_time
-        tour.matches = matches
+        tour.matches = first_round_matches
 
-        tour1_ser = {
+        serialized_round = {
+            'name': tour.name,
+            'beginDateAndHour': tour.beginDateAndHour,
+            'endDateAndHour': tour.endDateAndHour,
+            'matches': tour.matches
+        }
+
+        round_list = [serialized_round]
+
+        tournoi.Tournees = round_list
+
+        tournoi.status = "first round"
+
+        second_round_players = []
+
+        for player in next_round_players:
+            serialized_player = {
+                'Nom_de_famille': player.Nom_de_famille,
+                'Prenom': player.Prenom,
+                'Date_de_naissance': player.Date_de_naissance,
+                'Sexe': player.Sexe,
+                'Classement': player.Classement
+            }
+
+            second_round_players.append(serialized_player)
+
+        tournoi.secondRoundPlayers = second_round_players
+
+        self.db_controller.updateTournementByName(tournoi)
+
+        self.secondRound(tournoi)
+
+    def secondRound(self, tournoi):
+
+        print("Round 2 :")
+
+        second_round_players = []
+        second_round_peers = []
+        next_round_players = []
+
+        for player in tournoi.secondRoundPlayers:
+            joueur = Joueur(player["Nom_de_famille"], player["Prenom"], player["Date_de_naissance"],
+                                 player["Sexe"], player["Classement"])
+            second_round_players.append(joueur)
+
+        index = len(second_round_players) // 2
+
+        first_half = second_round_players[:index]
+
+        second_half = second_round_players[index:]
+
+        second_round_peers.extend(zip(first_half, second_half))
+
+        date_and_time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+        tour = Tour("tour 2", date_and_time, None, None)
+
+        second_round_matches = []
+
+        for first, second in second_round_peers:
+
+            score1 = input("Enter the score for the player : " + first.Nom_de_famille + " : ")
+            score2 = input("Enter the score for the player : " + second.Nom_de_famille + " : ")
+
+            if score1 == "1":
+                next_round_players.append(first)
+            elif score2 == "1":
+                next_round_players.append(second)
+            elif score1 == "0.5" and score2 == "0.5":
+                next_round_players.append(first)
+
+            serialized_first_player = {
+                'Nom_de_famille': first.Nom_de_famille,
+                'Prenom': first.Prenom,
+                'Date_de_naissance': first.Date_de_naissance,
+                'Sexe': first.Sexe,
+                'Classement': first.Classement
+            }
+
+            serialized_second_player = {
+                'Nom_de_famille': second.Nom_de_famille,
+                'Prenom': second.Prenom,
+                'Date_de_naissance': second.Date_de_naissance,
+                'Sexe': second.Sexe,
+                'Classement': second.Classement
+            }
+
+            players = [serialized_first_player, serialized_second_player]
+            scores = [score1, score2]
+
+            second_round_matches.append(list(zip(players, scores)))
+
+        end_date_and_time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        tour.endDateAndHour = end_date_and_time
+        tour.matches = second_round_matches
+
+        serialized_round = {
             'name': tour.name,
             'beginDateAndHour': tour.beginDateAndHour,
             'endDateAndHour': tour.endDateAndHour,
@@ -187,128 +272,24 @@ class MenuController:
 
         round_list = []
 
-        round_list.append(tour1_ser)
-
-        tournoi.Tournees = round_list
-
-        tournoi.status = "first round"
-
-        secondRoundPlayers = []
-
-        for player in new_players4:
-            serialized_player = {
-                'Nom_de_famille': player.Nom_de_famille,
-                'Prenom': player.Prenom,
-                'Date_de_naissance': player.Date_de_naissance,
-                'Sexe': player.Sexe,
-                'Classement': player.Classement
+        for r in tournoi.Tournees:
+            round = {
+                'name': r["name"],
+                'beginDateAndHour': r["beginDateAndHour"],
+                'endDateAndHour': r["endDateAndHour"],
+                'matches': r["matches"]
             }
+            round_list.append(round)
 
-            secondRoundPlayers.append(serialized_player)
-
-        tournoi.secondRoundPlayers = secondRoundPlayers
-
-        controller.updateTournementByName(tournoi)
-
-        self.secondRound(tournoi)
-
-
-    def secondRound(self, tournoi):
-
-        print("Round 2 :")
-
-        if len(new_players4) == 0:
-            for player in tournoi.secondRoundPlayers:
-                joureur = Joueur(player["Nom_de_famille"], player["Prenom"], player["Date_de_naissance"],
-                                 player["Sexe"], player["Classement"])
-                new_players4.append(joureur)
-
-        index = len(new_players4) // 2
-
-        first_half_2 = new_players4[:index]
-
-        second_half_2 = new_players4[index:]
-
-        peer2.extend(zip(first_half_2, second_half_2))
-
-        date_and_time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-
-        tour2 = Tour("tour 2", date_and_time, None, None)
-
-        matches2 = []
-
-        for first, second in peer2:
-
-            score1 = input("Enter the score for the player : " + first.Nom_de_famille)
-            score2 = input("Enter the score for the player : " + second.Nom_de_famille)
-
-            if score1 == "1":
-                ##new_players3.remove(first)
-                new_players5.append(first)
-            elif score2 == "1":
-                new_players5.append(second)
-                ##new_players3.remove(second)
-            elif score1 == "0.5" and score2 == "0.5":
-                new_players4.append(first)
-
-            test = input("changer le classement ??")
-
-            if test == "oui":
-                first.Classement = input("enter new classment for " + first.Nom_de_famille + " " + first.Prenom + " : ")
-                second.Classement = input("enter new classment for " + second.Nom_de_famille + " " + second.Prenom + " : ")
-
-            first_ser = {
-                'Nom_de_famille': first.Nom_de_famille,
-                'Prenom': first.Prenom,
-                'Date_de_naissance': first.Date_de_naissance,
-                'Sexe': first.Sexe,
-                'Classement': first.Classement
-            }
-
-            second_ser = {
-                'Nom_de_famille': second.Nom_de_famille,
-                'Prenom': second.Prenom,
-                'Date_de_naissance': second.Date_de_naissance,
-                'Sexe': second.Sexe,
-                'Classement': second.Classement
-            }
-
-            list_a = [first_ser, second_ser]
-            list_b = [score1, score2]
-
-            matches2.append(list(zip(list_a, list_b)))
-
-        end_date_and_time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        tour2.endDateAndHour = end_date_and_time
-        tour2.matches = matches2
-
-        tour2_ser = {
-            'name': tour2.name,
-            'beginDateAndHour': tour2.beginDateAndHour,
-            'endDateAndHour': tour2.endDateAndHour,
-            'matches': tour2.matches
-        }
-
-        round_list = []
-
-        for a in tournoi.Tournees:
-            round_one = {
-                'name': a["name"],
-                'beginDateAndHour': a["beginDateAndHour"],
-                'endDateAndHour': a["endDateAndHour"],
-                'matches': a["matches"]
-            }
-            round_list.append(round_one)
-
-        round_list.append(tour2_ser)
+        round_list.append(serialized_round)
 
         tournoi.Tournees = round_list
 
         tournoi.status = "second round"
 
-        thirdRoundPlayers = []
+        third_round_players = []
 
-        for player in new_players5:
+        for player in next_round_players:
             serialized_player = {
                 'Nom_de_famille': player.Nom_de_famille,
                 'Prenom': player.Prenom,
@@ -317,53 +298,45 @@ class MenuController:
                 'Classement': player.Classement
             }
 
-            thirdRoundPlayers.append(serialized_player)
+            third_round_players.append(serialized_player)
 
-        tournoi.thirdRoundPlayers = thirdRoundPlayers
+        tournoi.thirdRoundPlayers = third_round_players
 
-        controller.updateTournementByName(tournoi)
+        self.db_controller.updateTournementByName(tournoi)
 
         self.thirdRound(tournoi)
-
 
     def thirdRound(self, tournoi):
 
         print("Round 3 :")
 
-        if len(new_players5) == 0:
-            for player in tournoi.thirdRoundPlayers:
-                joureur = Joueur(player["Nom_de_famille"], player["Prenom"], player["Date_de_naissance"],
+        third_round_players = []
+        third_round_peers = []
+
+        for player in tournoi.thirdRoundPlayers:
+            joueur = Joueur(player["Nom_de_famille"], player["Prenom"], player["Date_de_naissance"],
                                  player["Sexe"], player["Classement"])
-                new_players5.append(joureur)
+            third_round_players.append(joueur)
 
-        index = len(new_players5) // 2
+        index = len(third_round_players) // 2
 
-        first_half_3 = new_players5[:index]
+        first_half = third_round_players[:index]
 
-        second_half_3 = new_players5[index:]
+        second_half = third_round_players[index:]
 
-        peer3.extend(zip(first_half_3, second_half_3))
+        third_round_peers.extend(zip(first_half, second_half))
 
         date_and_time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
-        tour3 = Tour("tour 3", date_and_time, None, None)
+        tour = Tour("tour 3", date_and_time, None, None)
 
-        matches3 = []
+        third_round_matches = []
 
-        for first, second in peer3:
-            score1 = input("Enter the score for the player : " + first.Nom_de_famille)
-            score2 = input("Enter the score for the player : " + second.Nom_de_famille)
+        for first, second in third_round_peers:
+            score1 = input("Enter the score for the player : " + first.Nom_de_famille + " : ")
+            score2 = input("Enter the score for the player : " + second.Nom_de_famille + " : ")
 
-            if score1 == "0.5" and score2 == "0.5":
-                new_players4.append(first)
-
-            test = input("changer le classement ??")
-
-            if test == "oui":
-                first.Classement = input("enter new classment for " + first.Nom_de_famille + " " + first.Prenom + " : ")
-                second.Classement = input("enter new classment for " + second.Nom_de_famille + " " + second.Prenom + " : ")
-
-            first_ser = {
+            serialized_first_player = {
                 'Nom_de_famille': first.Nom_de_famille,
                 'Prenom': first.Prenom,
                 'Date_de_naissance': first.Date_de_naissance,
@@ -371,7 +344,7 @@ class MenuController:
                 'Classement': first.Classement
             }
 
-            second_ser = {
+            serialized_second_player = {
                 'Nom_de_famille': second.Nom_de_famille,
                 'Prenom': second.Prenom,
                 'Date_de_naissance': second.Date_de_naissance,
@@ -379,123 +352,166 @@ class MenuController:
                 'Classement': second.Classement
             }
 
-            list_a = [first_ser, second_ser]
-            list_b = [score1, score2]
+            players = [serialized_first_player, serialized_second_player]
+            scores = [score1, score2]
 
-            matches3.append(list(zip(list_a, list_b)))
+            third_round_matches.append(list(zip(players, scores)))
 
         end_date_and_time = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        tour3.endDateAndHour = end_date_and_time
-        tour3.matches = matches3
+        tour.endDateAndHour = end_date_and_time
+        tour.matches = third_round_matches
 
-        tour3_ser = {
-            'name': tour3.name,
-            'beginDateAndHour': tour3.beginDateAndHour,
-            'endDateAndHour': tour3.endDateAndHour,
-            'matches': tour3.matches
+        serialized_round = {
+            'name': tour.name,
+            'beginDateAndHour': tour.beginDateAndHour,
+            'endDateAndHour': tour.endDateAndHour,
+            'matches': tour.matches
         }
 
         round_list = []
 
-        for a in tournoi.Tournees:
-            round_one = {
-                'name': a["name"],
-                'beginDateAndHour': a["beginDateAndHour"],
-                'endDateAndHour': a["endDateAndHour"],
-                'matches': a["matches"]
+        for r in tournoi.Tournees:
+            round = {
+                'name': r["name"],
+                'beginDateAndHour': r["beginDateAndHour"],
+                'endDateAndHour': r["endDateAndHour"],
+                'matches': r["matches"]
             }
-            round_list.append(round_one)
+            round_list.append(round)
 
-        round_list.append(tour3_ser)
+        round_list.append(serialized_round)
 
         tournoi.Tournees = round_list
 
-        allPlayers = []
+        tournoi.status = "finished"
+
+        new_players_classment = []
 
         serialized_players = tournoi.Joueurs
 
         for player in serialized_players:
-            joureur = Joueur(player["Nom_de_famille"], player["Prenom"], player["Date_de_naissance"], player["Sexe"],
+            joueur = Joueur(player["Nom_de_famille"], player["Prenom"], player["Date_de_naissance"], player["Sexe"],
                              player["Classement"])
-            classment = input("enter new classment for " + joureur.Nom_de_famille + " " + joureur.Prenom + " : ")
-            joueur = {
-                'Nom_de_famille': joureur.Nom_de_famille,
-                'Prenom': joureur.Prenom,
-                'Date_de_naissance': joureur.Date_de_naissance,
-                'Sexe': joureur.Sexe,
+            classment = input("enter the new classment for the player : " + joueur.Nom_de_famille + " " + joueur.Prenom + " : ")
+            serialized_player = {
+                'Nom_de_famille': joueur.Nom_de_famille,
+                'Prenom': joueur.Prenom,
+                'Date_de_naissance': joueur.Date_de_naissance,
+                'Sexe': joueur.Sexe,
                 'Classement': classment
             }
-            allPlayers.append(joueur)
+            new_players_classment.append(serialized_player)
 
-        tournoi.Joueurs = allPlayers
+        tournoi.Joueurs = new_players_classment
 
-        controller.updateTournementByName(tournoi)
-
-
+        self.db_controller.updateTournementByName(tournoi)
 
     def creatReports(self):
+        while True:
+            print("1) list all actors by alphabet order")
+            print("2) list all actors by classment")
+            print("3) list all players of a tournement by alphabet order")
+            print("4) list all players of a tournement by classment")
+            print("5) list all tournements")
+            print("6) list all rounds of a tournement")
+            print("7) list all matches of a tournement")
+            print("8) Exit reports menu")
+            option = input("choose an option :")
 
-        print("1) list all actors by alphabet order")
-        print("2) list all actors by classment")
-        print("3) list all players of a tournement by alphabet order")
-        print("4) list all players of a tournement by classment")
-        print("5) list all tournements")
-        print("6) list all rounds of a tournement")
-        print("7) list all matches of a tournement")
-        option = input("choose an option :")
+            if option == "1":
+                all_players_list = self.db_controller.getAllPlayers()
+                ordered_list = sorted(all_players_list, key=lambda j: j['Nom_de_famille'])
+                print(json.dumps(ordered_list, sort_keys=False, indent=4))
+            if option == "2":
+                all_players_list = self.db_controller.getAllPlayers()
+                ordered_list = sorted(all_players_list, key=lambda j: j['Classement'])
+                print(json.dumps(ordered_list, sort_keys=False, indent=4))
+            if option == "3":
+                serialized_tournement = None
 
-        if (option == "1"):
-            all = controller.getAllPlayers()
-            orderedList = sorted(all, key=lambda j: j['Nom_de_famille'])
-            print(orderedList)
-        if (option == "2"):
-            all = controller.getAllPlayers()
-            orderedList = sorted(all, key=lambda j: j['Classement'])
-            print(orderedList)
-        if (option == "3"):
-            name = input("enter tournement name : ")
-            serialized_tournement = controller.getTournementByName(name)
-            tournement = Tournoi(serialized_tournement["Nom"],  serialized_tournement["Lieu"],  serialized_tournement["Date"],  serialized_tournement["Nombre_de_tours"],  serialized_tournement["Tournees"], serialized_tournement["Joueurs"],  serialized_tournement["Controle_du_temps"],  serialized_tournement["Description"], serialized_tournement["status"], serialized_tournement["secondRoundPlayers"], serialized_tournement["thirdRoundPlayers"])
-            players = tournement.Joueurs
-            orderedList = sorted(players, key=lambda j: j['Nom_de_famille'])
-            print(orderedList)
-        if (option == "4"):
-            name = input("enter tournement name : ")
-            serialized_tournement = controller.getTournementByName(name)
-            tournement = Tournoi(serialized_tournement["Nom"], serialized_tournement["Lieu"],
-                                 serialized_tournement["Date"], serialized_tournement["Nombre_de_tours"],
-                                 serialized_tournement["Tournees"], serialized_tournement["Joueurs"],
-                                 serialized_tournement["Controle_du_temps"], serialized_tournement["Description"],
-                                 serialized_tournement["status"], serialized_tournement["secondRoundPlayers"], serialized_tournement["thirdRoundPlayers"])
-            players = tournement.Joueurs
-            orderedList = sorted(players, key=lambda j: j['Classement'])
-            print(orderedList)
-        if (option == "5"):
-            all = controller.getAllTournements()
-            print(all)
-        if (option == "6"):
-            name = input("enter tournement name : ")
-            serialized_tournement = controller.getTournementByName(name)
-            tournement = Tournoi(serialized_tournement["Nom"], serialized_tournement["Lieu"],
-                                 serialized_tournement["Date"], serialized_tournement["Nombre_de_tours"],
-                                 serialized_tournement["Tournees"], serialized_tournement["Joueurs"],
-                                 serialized_tournement["Controle_du_temps"], serialized_tournement["Description"],
-                                 serialized_tournement["status"], serialized_tournement["secondRoundPlayers"], serialized_tournement["thirdRoundPlayers"])
-            allRounds = tournement.Tournees
-            print(allRounds)
-        if (option == "7"):
-            name = input("enter tournement name : ")
-            serialized_tournement = controller.getTournementByName(name)
-            tournement = Tournoi(serialized_tournement["Nom"], serialized_tournement["Lieu"],
-                                 serialized_tournement["Date"], serialized_tournement["Nombre_de_tours"],
-                                 serialized_tournement["Tournees"], serialized_tournement["Joueurs"],
-                                 serialized_tournement["Controle_du_temps"], serialized_tournement["Description"],
-                                 serialized_tournement["status"], serialized_tournement["secondRoundPlayers"], serialized_tournement["thirdRoundPlayers"])
-            serialized_rounds = tournement.Tournees
+                while True:
+                    tournement_name = input("Enter tournement name : ")
+                    serialized_tournement = self.db_controller.getTournementByName(tournement_name)
+                    if serialized_tournement is not None:
+                        break
+                    else:
+                        print("This tournement was not found try again")
+                        continue
 
-            for element in serialized_rounds:
-                print(element["matches"])
+                tournement = Tournoi(serialized_tournement["Nom"], serialized_tournement["Lieu"],
+                                     serialized_tournement["Date"], serialized_tournement["Nombre_de_tours"],
+                                     serialized_tournement["Tournees"], serialized_tournement["Joueurs"],
+                                     serialized_tournement["Controle_du_temps"], serialized_tournement["Description"],
+                                     serialized_tournement["status"], serialized_tournement["secondRoundPlayers"],
+                                     serialized_tournement["thirdRoundPlayers"])
+                tournement_players = tournement.Joueurs
+                ordered_list = sorted(tournement_players, key=lambda j: j['Nom_de_famille'])
+                print(json.dumps(ordered_list, sort_keys=False, indent=4))
+            if option == "4":
+                serialized_tournement = None
 
+                while True:
+                    tournement_name = input("Enter tournement name : ")
+                    serialized_tournement = self.db_controller.getTournementByName(tournement_name)
+                    if serialized_tournement is not None:
+                        break
+                    else:
+                        print("This tournement was not found try again")
+                        continue
 
+                tournement = Tournoi(serialized_tournement["Nom"], serialized_tournement["Lieu"],
+                                     serialized_tournement["Date"], serialized_tournement["Nombre_de_tours"],
+                                     serialized_tournement["Tournees"], serialized_tournement["Joueurs"],
+                                     serialized_tournement["Controle_du_temps"], serialized_tournement["Description"],
+                                     serialized_tournement["status"], serialized_tournement["secondRoundPlayers"],
+                                     serialized_tournement["thirdRoundPlayers"])
+                tournement_players = tournement.Joueurs
+                ordered_list = sorted(tournement_players, key=lambda j: j['Classement'])
+                print(json.dumps(ordered_list, sort_keys=False, indent=4))
+            if option == "5":
+                all_tournements = self.db_controller.getAllTournements()
+                print(json.dumps(all_tournements, sort_keys=False, indent=4))
+            if option == "6":
+                serialized_tournement = None
 
+                while True:
+                    tournement_name = input("Enter tournement name : ")
+                    serialized_tournement = self.db_controller.getTournementByName(tournement_name)
+                    if serialized_tournement is not None:
+                        break
+                    else:
+                        print("This tournement was not found try again")
+                        continue
 
+                tournement = Tournoi(serialized_tournement["Nom"], serialized_tournement["Lieu"],
+                                     serialized_tournement["Date"], serialized_tournement["Nombre_de_tours"],
+                                     serialized_tournement["Tournees"], serialized_tournement["Joueurs"],
+                                     serialized_tournement["Controle_du_temps"], serialized_tournement["Description"],
+                                     serialized_tournement["status"], serialized_tournement["secondRoundPlayers"],
+                                     serialized_tournement["thirdRoundPlayers"])
+                all_rounds = tournement.Tournees
+                print(json.dumps(all_rounds, sort_keys=False, indent=4))
+            if option == "7":
+                serialized_tournement = None
+
+                while True:
+                    tournement_name = input("Enter tournement name : ")
+                    serialized_tournement = self.db_controller.getTournementByName(tournement_name)
+                    if serialized_tournement is not None:
+                        break
+                    else:
+                        print("This tournement was not found try again")
+                        continue
+
+                tournement = Tournoi(serialized_tournement["Nom"], serialized_tournement["Lieu"],
+                                     serialized_tournement["Date"], serialized_tournement["Nombre_de_tours"],
+                                     serialized_tournement["Tournees"], serialized_tournement["Joueurs"],
+                                     serialized_tournement["Controle_du_temps"], serialized_tournement["Description"],
+                                     serialized_tournement["status"], serialized_tournement["secondRoundPlayers"],
+                                     serialized_tournement["thirdRoundPlayers"])
+                serialized_rounds = tournement.Tournees
+
+                for round in serialized_rounds:
+                    print(json.dumps(round["matches"], sort_keys=False, indent=4))
+            if option == "8":
+                break

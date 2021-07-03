@@ -3,7 +3,7 @@ from tinydb import TinyDB, Query, where
 
 class DatabaseController:
 
-    def insertPlayers(self, joueur):
+    def insertPlayer(self, joueur):
 
         serialized_player = {
             'Nom_de_famille': joueur.Nom_de_famille,
@@ -46,7 +46,7 @@ class DatabaseController:
         tournements.insert(serialized_tournement)
 
 
-    def getByFamillyName(self, family_name, name):
+    def getAPlayer(self, family_name, name):
         db = TinyDB('db.json')
         players = db.table('players')
         serialized_player = players.get(Query()['Nom_de_famille'] == family_name and Query()['Prenom'] == name)
@@ -64,24 +64,6 @@ class DatabaseController:
         db = TinyDB('db.json')
         tournement = db.table('tournements')
         tournement.update({'Joueurs': tournoi.Joueurs, 'Tournees': tournoi.Tournees, 'status': tournoi.status, 'secondRoundPlayers': tournoi.secondRoundPlayers, 'thirdRoundPlayers': tournoi.thirdRoundPlayers}, where('Nom') == tournoi.Nom)
-
-    def updateTournementRounds(self, tournoi):
-        db = TinyDB('db.json')
-        tournement = db.table('tournements')
-        tournement.update({'Tournees': tournoi.Tournees}, where('Nom') == tournoi.Nom)
-
-
-    def updateTournementStatusAndPlayers(self, tournoi):
-        db = TinyDB('db.json')
-        tournement = db.table('tournements')
-        tournement.update({'status': tournoi.status, 'secondRoundPlayers': tournoi.secondRoundPlayers, 'thirdRoundPlayers': tournoi.thirdRoundPlayers}, where('Nom') == tournoi.Nom)
-
-
-    def getPlayersByClassments(self):
-        db = TinyDB('db.json')
-        players = db.table('players')
-        serialized_player = players.all()
-        return serialized_player
 
     def getAllTournements(self):
         db = TinyDB('db.json')
