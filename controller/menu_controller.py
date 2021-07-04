@@ -3,10 +3,9 @@ from model.Joueur import Joueur
 from model.Tour import Tour
 from datetime import date, datetime
 from controller import DatabaseController
-import json
+
 
 class MenuController:
-
     db_controller = DatabaseController.DatabaseController()
 
     def createANewTournement(self):
@@ -113,7 +112,7 @@ class MenuController:
 
         for player in serialized_players:
             joueur = Joueur(player["Nom_de_famille"], player["Prenom"], player["Date_de_naissance"], player["Sexe"],
-                             player["Classement"])
+                            player["Classement"])
             first_round_players.append(joueur)
 
         index = len(first_round_players) // 2
@@ -209,7 +208,7 @@ class MenuController:
 
         for player in tournoi.secondRoundPlayers:
             joueur = Joueur(player["Nom_de_famille"], player["Prenom"], player["Date_de_naissance"],
-                                 player["Sexe"], player["Classement"])
+                            player["Sexe"], player["Classement"])
             second_round_players.append(joueur)
 
         index = len(second_round_players) // 2
@@ -315,7 +314,7 @@ class MenuController:
 
         for player in tournoi.thirdRoundPlayers:
             joueur = Joueur(player["Nom_de_famille"], player["Prenom"], player["Date_de_naissance"],
-                                 player["Sexe"], player["Classement"])
+                            player["Sexe"], player["Classement"])
             third_round_players.append(joueur)
 
         index = len(third_round_players) // 2
@@ -391,8 +390,9 @@ class MenuController:
 
         for player in serialized_players:
             joueur = Joueur(player["Nom_de_famille"], player["Prenom"], player["Date_de_naissance"], player["Sexe"],
-                             player["Classement"])
-            classment = input("enter the new classment for the player : " + joueur.Nom_de_famille + " " + joueur.Prenom + " : ")
+                            player["Classement"])
+            classment = input(
+                "enter the new classment for the player : " + joueur.Nom_de_famille + " " + joueur.Prenom + " : ")
             serialized_player = {
                 'Nom_de_famille': joueur.Nom_de_famille,
                 'Prenom': joueur.Prenom,
@@ -421,14 +421,22 @@ class MenuController:
             if option == "1":
                 all_players_list = self.db_controller.getAllPlayers()
                 ordered_list = sorted(all_players_list, key=lambda j: j['Nom_de_famille'])
-                print(json.dumps(ordered_list, sort_keys=False, indent=4))
+                for player in ordered_list:
+                    print("Nom_de_famille : " + player["Nom_de_famille"])
+                    print("Prenom : " + player["Prenom"])
+                    print("Date_de_naissance : " + player["Date_de_naissance"])
+                    print("Sexe : " + player["Sexe"])
+                    print("Classement : " + player["Classement"] + "\n")
             if option == "2":
                 all_players_list = self.db_controller.getAllPlayers()
                 ordered_list = sorted(all_players_list, key=lambda j: j['Classement'])
-                print(json.dumps(ordered_list, sort_keys=False, indent=4))
+                for player in ordered_list:
+                    print("Nom_de_famille : " + player["Nom_de_famille"])
+                    print("Prenom : " + player["Prenom"])
+                    print("Date_de_naissance : " + player["Date_de_naissance"])
+                    print("Sexe : " + player["Sexe"])
+                    print("Classement : " + player["Classement"] + "\n")
             if option == "3":
-                serialized_tournement = None
-
                 while True:
                     tournement_name = input("Enter tournement name : ")
                     serialized_tournement = self.db_controller.getTournementByName(tournement_name)
@@ -446,9 +454,13 @@ class MenuController:
                                      serialized_tournement["thirdRoundPlayers"])
                 tournement_players = tournement.Joueurs
                 ordered_list = sorted(tournement_players, key=lambda j: j['Nom_de_famille'])
-                print(json.dumps(ordered_list, sort_keys=False, indent=4))
+                for player in ordered_list:
+                    print("Nom_de_famille : " + player["Nom_de_famille"])
+                    print("Prenom : " + player["Prenom"])
+                    print("Date_de_naissance : " + player["Date_de_naissance"])
+                    print("Sexe : " + player["Sexe"])
+                    print("Classement : " + player["Classement"] + "\n")
             if option == "4":
-                serialized_tournement = None
 
                 while True:
                     tournement_name = input("Enter tournement name : ")
@@ -467,13 +479,64 @@ class MenuController:
                                      serialized_tournement["thirdRoundPlayers"])
                 tournement_players = tournement.Joueurs
                 ordered_list = sorted(tournement_players, key=lambda j: j['Classement'])
-                print(json.dumps(ordered_list, sort_keys=False, indent=4))
+                for player in ordered_list:
+                    print("Nom_de_famille : " + player["Nom_de_famille"])
+                    print("Prenom : " + player["Prenom"])
+                    print("Date_de_naissance : " + player["Date_de_naissance"])
+                    print("Sexe : " + player["Sexe"])
+                    print("Classement : " + player["Classement"] + "\n")
             if option == "5":
                 all_tournements = self.db_controller.getAllTournements()
-                print(json.dumps(all_tournements, sort_keys=False, indent=4))
+                for tournement in all_tournements:
+                    print("Nom : " + tournement["Nom"])
+                    print("Lieu : " + tournement["Lieu"])
+                    print("Date : " + tournement["Date"])
+                    print("Nombre_de_tours : " + str(tournement["Nombre_de_tours"]))
+                    print("Tournees : \n")
+                    for tour in tournement["Tournees"]:
+                        print("name : " + tour["name"])
+                        print("beginDateAndHour : " + tour["beginDateAndHour"])
+                        print("endDateAndHour : " + tour["endDateAndHour"])
+                        print("matches : \n")
+                        for match in tour["matches"]:
+                            print("Nom_de_famille : " + match[0][0]["Nom_de_famille"])
+                            print("Prenom : " + match[0][0]["Prenom"])
+                            print("Date_de_naissance : " + match[0][0]["Date_de_naissance"])
+                            print("Sexe : " + match[0][0]["Sexe"])
+                            print("Classement : " + match[0][0]["Classement"])
+                            print("score : " + str(match[0][1]) + "\n")
+                            print("contre : \n")
+                            print("Nom_de_famille : " + match[1][0]["Nom_de_famille"])
+                            print("Prenom : " + match[1][0]["Prenom"])
+                            print("Date_de_naissance : " + match[1][0]["Date_de_naissance"])
+                            print("Sexe : " + match[1][0]["Sexe"])
+                            print("Classement : " + match[1][0]["Classement"])
+                            print("score : " + str(match[1][1]) + "\n")
+                    print("Joueurs : \n")
+                    for player in tournement["Joueurs"]:
+                        print("Nom_de_famille : " + player["Nom_de_famille"])
+                        print("Prenom : " + player["Prenom"])
+                        print("Date_de_naissance : " + player["Date_de_naissance"])
+                        print("Sexe : " + player["Sexe"])
+                        print("Classement : " + player["Classement"] + "\n")
+                    print("Controle_du_temps : " + tournement["Controle_du_temps"])
+                    print("Description : " + tournement["Description"])
+                    print("status : " + tournement["status"])
+                    print("secondRoundPlayers : \n")
+                    for player in tournement["secondRoundPlayers"]:
+                        print("Nom_de_famille : " + player["Nom_de_famille"])
+                        print("Prenom : " + player["Prenom"])
+                        print("Date_de_naissance : " + player["Date_de_naissance"])
+                        print("Sexe : " + player["Sexe"])
+                        print("Classement : " + player["Classement"] + "\n")
+                    print("thirdRoundPlayers : \n")
+                    for player in tournement["thirdRoundPlayers"]:
+                        print("Nom_de_famille : " + player["Nom_de_famille"])
+                        print("Prenom : " + player["Prenom"])
+                        print("Date_de_naissance : " + player["Date_de_naissance"])
+                        print("Sexe : " + player["Sexe"])
+                        print("Classement : " + player["Classement"] + "\n")
             if option == "6":
-                serialized_tournement = None
-
                 while True:
                     tournement_name = input("Enter tournement name : ")
                     serialized_tournement = self.db_controller.getTournementByName(tournement_name)
@@ -490,10 +553,26 @@ class MenuController:
                                      serialized_tournement["status"], serialized_tournement["secondRoundPlayers"],
                                      serialized_tournement["thirdRoundPlayers"])
                 all_rounds = tournement.Tournees
-                print(json.dumps(all_rounds, sort_keys=False, indent=4))
+                for tour in all_rounds:
+                    print("name : " + tour["name"])
+                    print("beginDateAndHour : " + tour["beginDateAndHour"])
+                    print("endDateAndHour : " + tour["endDateAndHour"])
+                    print("matches : \n")
+                    for match in tour["matches"]:
+                        print("Nom_de_famille : " + match[0][0]["Nom_de_famille"])
+                        print("Prenom : " + match[0][0]["Prenom"])
+                        print("Date_de_naissance : " + match[0][0]["Date_de_naissance"])
+                        print("Sexe : " + match[0][0]["Sexe"])
+                        print("Classement : " + match[0][0]["Classement"])
+                        print("score : " + str(match[0][1]) + "\n")
+                        print("contre : \n")
+                        print("Nom_de_famille : " + match[1][0]["Nom_de_famille"])
+                        print("Prenom : " + match[1][0]["Prenom"])
+                        print("Date_de_naissance : " + match[1][0]["Date_de_naissance"])
+                        print("Sexe : " + match[1][0]["Sexe"])
+                        print("Classement : " + match[1][0]["Classement"])
+                        print("score : " + str(match[1][1]) + "\n")
             if option == "7":
-                serialized_tournement = None
-
                 while True:
                     tournement_name = input("Enter tournement name : ")
                     serialized_tournement = self.db_controller.getTournementByName(tournement_name)
@@ -511,7 +590,20 @@ class MenuController:
                                      serialized_tournement["thirdRoundPlayers"])
                 serialized_rounds = tournement.Tournees
 
-                for round in serialized_rounds:
-                    print(json.dumps(round["matches"], sort_keys=False, indent=4))
+                for tour in serialized_rounds:
+                    for match in tour["matches"]:
+                        print("Nom_de_famille : " + match[0][0]["Nom_de_famille"])
+                        print("Prenom : " + match[0][0]["Prenom"])
+                        print("Date_de_naissance : " + match[0][0]["Date_de_naissance"])
+                        print("Sexe : " + match[0][0]["Sexe"])
+                        print("Classement : " + match[0][0]["Classement"])
+                        print("score : " + str(match[0][1]) + "\n")
+                        print("contre : \n")
+                        print("Nom_de_famille : " + match[1][0]["Nom_de_famille"])
+                        print("Prenom : " + match[1][0]["Prenom"])
+                        print("Date_de_naissance : " + match[1][0]["Date_de_naissance"])
+                        print("Sexe : " + match[1][0]["Sexe"])
+                        print("Classement : " + match[1][0]["Classement"])
+                        print("score : " + str(match[1][1]) + "\n")
             if option == "8":
                 break

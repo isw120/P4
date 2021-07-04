@@ -1,6 +1,7 @@
 class Tournoi:
 
-    def __init__(self, Nom, Lieu, Date, Nombre_de_tours, Tournees, Joueurs, Controle_du_temps, Description, status, secondRoundPlayers, thirdRoundPlayers):
+    def __init__(self, Nom, Lieu, Date, Nombre_de_tours, Tournees, Joueurs, Controle_du_temps, Description, status,
+                 secondRoundPlayers, thirdRoundPlayers):
         self.Nom = Nom
         self.Lieu = Lieu
         self.Date = Date
