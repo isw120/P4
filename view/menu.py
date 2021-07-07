@@ -17,7 +17,7 @@ class Menu:
 
     def chooseOption(self):
         while True:
-            option = input("Enter an option : ")
+            option = input("Enter an option : " + "\n")
             if option == "1":
                 self.controller.addingANewPlayer()
                 self.showMenu()
@@ -34,8 +34,8 @@ class Menu:
                 self.controller.creatReports()
                 self.showMenu()
             if option == "6":
-                print("You choosed to exit")
+                print("You choosed to exit" + "\n")
                 sys.exit()
             else:
-                print("Wrong option")
+                print("Wrong option" + "\n")
                 self.showMenu()

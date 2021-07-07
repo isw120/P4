@@ -29,7 +29,7 @@ class MenuController:
         while True:
             classement = input("Enter a classement : ")
             if classement.isalpha() or int(classement) < 0:
-                print("classement must be a positive number")
+                print("classement must be a positive number" + "\n")
             else:
                 break
 
@@ -39,15 +39,13 @@ class MenuController:
 
     def startingTournemant(self):
 
-        serialized_tournement = None
-
         while True:
             tournement_name = input("Enter tournement name :")
             serialized_tournement = self.db_controller.getTournementByName(tournement_name)
             if serialized_tournement is not None:
                 break
             else:
-                print("This tournement was not found try again")
+                print("This tournement was not found try again" + "\n")
                 continue
 
         number = 0
@@ -60,7 +58,7 @@ class MenuController:
                 players_list.append(serialized_player)
                 number = number + 1
             else:
-                print("This player was not found try again")
+                print("This player was not found try again" + "\n")
                 continue
 
         tournoi = Tournoi(serialized_tournement["Nom"], serialized_tournement["Lieu"], serialized_tournement["Date"],
@@ -75,15 +73,13 @@ class MenuController:
 
     def continueTournement(self):
 
-        serialized_tournement = None
-
         while True:
             tournement_name = input("Enter tournement name : ")
             serialized_tournement = self.db_controller.getTournementByName(tournement_name)
             if serialized_tournement is not None:
                 break
             else:
-                print("This tournement was not found try again")
+                print("This tournement was not found try again" + "\n")
                 continue
 
         tournoi = Tournoi(serialized_tournement["Nom"], serialized_tournement["Lieu"], serialized_tournement["Date"],
@@ -98,11 +94,11 @@ class MenuController:
         elif tournoi.status == "second round":
             self.thirdRound(tournoi)
         else:
-            print("This tournement is finished")
+            print("This tournement is finished" + "\n")
 
     def dividePlayers(self, tournoi):
 
-        print("Round 1 :")
+        print("Round 1 :" + "\n")
 
         serialized_players = tournoi.Joueurs
 
@@ -200,7 +196,7 @@ class MenuController:
 
     def secondRound(self, tournoi):
 
-        print("Round 2 :")
+        print("Round 2 :" + "\n")
 
         second_round_players = []
         second_round_peers = []
@@ -307,7 +303,7 @@ class MenuController:
 
     def thirdRound(self, tournoi):
 
-        print("Round 3 :")
+        print("Round 3 :" + "\n")
 
         third_round_players = []
         third_round_peers = []
@@ -416,7 +412,7 @@ class MenuController:
             print("6) list all rounds of a tournement")
             print("7) list all matches of a tournement")
             print("8) Exit reports menu")
-            option = input("choose an option :")
+            option = input("choose an option :" + "\n")
 
             if option == "1":
                 all_players_list = self.db_controller.getAllPlayers()
@@ -438,7 +434,7 @@ class MenuController:
                     print("Classement : " + player["Classement"] + "\n")
             if option == "3":
                 while True:
-                    tournement_name = input("Enter tournement name : ")
+                    tournement_name = input("Enter tournement name : " + "\n")
                     serialized_tournement = self.db_controller.getTournementByName(tournement_name)
                     if serialized_tournement is not None:
                         break
@@ -463,7 +459,7 @@ class MenuController:
             if option == "4":
 
                 while True:
-                    tournement_name = input("Enter tournement name : ")
+                    tournement_name = input("Enter tournement name : " + "\n")
                     serialized_tournement = self.db_controller.getTournementByName(tournement_name)
                     if serialized_tournement is not None:
                         break
@@ -538,7 +534,7 @@ class MenuController:
                         print("Classement : " + player["Classement"] + "\n")
             if option == "6":
                 while True:
-                    tournement_name = input("Enter tournement name : ")
+                    tournement_name = input("Enter tournement name : " + "\n")
                     serialized_tournement = self.db_controller.getTournementByName(tournement_name)
                     if serialized_tournement is not None:
                         break
@@ -574,7 +570,7 @@ class MenuController:
                         print("score : " + str(match[1][1]) + "\n")
             if option == "7":
                 while True:
-                    tournement_name = input("Enter tournement name : ")
+                    tournement_name = input("Enter tournement name : " + "\n")
                     serialized_tournement = self.db_controller.getTournementByName(tournement_name)
                     if serialized_tournement is not None:
                         break
