@@ -10,7 +10,8 @@ How to run this program :
 - copy the repository in https://github.com/isw120/P4
 - if you need to create a virtual env use : Python -m venv env 
 - to activate the virtual env use : .\env\Scripts\activate 
-- Install the requirements.txt needed :
+
+Install the requirements.txt needed :
 
 - flake8==3.9.2
 - flake8-html==0.4.1
