@@ -384,6 +384,8 @@ class MenuController:
 
         serialized_players = tournoi.Joueurs
 
+        print("Update Players classment : " + "\n")
+
         for player in serialized_players:
             joueur = Joueur(player["Nom_de_famille"], player["Prenom"], player["Date_de_naissance"], player["Sexe"],
                             player["Classement"])
